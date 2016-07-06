@@ -1,7 +1,7 @@
 //  Project:  RIOT1 - Remote IOT Node for monitoring Weather - Temperature, Humidity, Barometric Pressure
 //  Author:   Geofrey Cardoza
 //  Baseline: June 14th, 2016
-//  Revision: July 2nd, 2016  v0.7
+//  Revision: June 28th, 2016  v0.6
 //
 //  Hardware Configuration:
 //    Arduino Nano v3
@@ -81,7 +81,7 @@ void setup(void)
   lcd.InitLCD();
   lcd.setContrast(55);
   lcd.setFont(SmallFont);
-  lcd.print("RIOT1 v0.7",LEFT,0);     // Display Splash Page
+  lcd.print("RIOT1 v0.6",LEFT,0);     // Display Splash Page
   lcd.print("  Monitoring",LEFT,16);
   lcd.print("  System Node",LEFT,24);
   lcd.print("Excaliber Inc.",LEFT,40);
@@ -140,14 +140,11 @@ void loop()
     if (Status == 0)
     {
       if (debug) Serial.print(F("-> DHT22: Read OK\n"));
-      DHT22_Issues = 0; Reset Error count if the device is working
     }
     else
     {
       if (debug) Serial.print(F("-> DHT22: Read FAILED\n"));
       DHT22_Issues += 1;
-      DHT22_Temperature = 0.0;
-      DHT22_Humidity = 0.0;
     }
   }
 
@@ -160,14 +157,11 @@ void loop()
     if (Status == 0)
     {  
       if (debug) Serial.print(F("-> BMP180: Read OK\n"));
-      BMP180_Issues = 0; Reset Error count if the device is working
     }
     else
     {
       if (debug) Serial.print(F("-> BMP180: Read FAILED\n"));
       BMP180_Issues += 1;
-      BMP180_Temperature = 0.0;
-      BMP180_Pressure = 0.0.;
     }
   }
     
@@ -187,7 +181,7 @@ void loop()
    
   // Clear Nokia 5110 LCD Display and print data on it
 //  lcd.InitLCD();
-//  lcd.setFont(SmallFont);
+  lcd.setFont(SmallFont);
   sprintf(buffer, "Excaliber RIOT");
   lcd.print(buffer,LEFT,0);
   
