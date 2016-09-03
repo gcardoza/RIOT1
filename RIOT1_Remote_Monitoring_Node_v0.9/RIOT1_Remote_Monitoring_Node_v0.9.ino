@@ -1,7 +1,7 @@
 //  Project:  RIOT1 - Remote IOT Node for monitoring Weather - Temperature, Humidity, Barometric Pressure
 //  Author:   Geofrey Cardoza
 //  Baseline: June 14th, 2016
-//  Revision: June 28th, 2016  v0.8
+//  Revision: August 14th, 2016  v0.9
 //
 //  Hardware Configuration:
 //    Arduino Nano v3
@@ -24,11 +24,11 @@
   #include <TimeLib.h>              // Library for Date and Time functions
   
 // ***** Declare global variables for the RIOT1 Node
-  #define Update_Interval 20000                   // set Node Data Update frequence to every 10 seconds 
-  #define Max_Device_Fail_Count 2                 // read device a max of this count then ignore it
+  #define Update_Interval 20000                         // set Data Update frequence to every 60 seconds (for debug I set it to 20)
+  #define Max_Device_Fail_Count 2                       // read device a max of this count then ignore it
   int DHT22_Issues=0, BMP180_Issues=0, DS1307_Issues=0; // Is the sensor present and operational 0= Operational, >0 is the failed count
-  int Update_Sequence = 0;                         // Update sequence number to base
-  int debug = 1;                                  // Set to 0 for production and 1 for debug mode
+  unsigned long Update_Sequence = 0;                    // Update sequence number to base
+  int debug = 1;                                        // Set to 0 for production and 1 for debug mode
 
 // Initialize the Nokia 5110 LCD Display
   extern unsigned char SmallFont[];
@@ -74,7 +74,7 @@ void setup(void)
   pinMode(Tx_Pin, OUTPUT);
   pinMode(Rx_Pin, INPUT);
   Serial.begin(9600);
-  Serial.print(F("\n***** STARTING RIOT1 Node v  0.6 *****\n"));
+  Serial.print(F("\n***** STARTING RIOT1 Node 20160814 v0.9 *****\n"));
   Serial.print(F("***** ENTERING SETUP MODE *****\n"));
         
   //  ***** Initialize Display *****
@@ -82,7 +82,7 @@ void setup(void)
   lcd.InitLCD();
   lcd.setContrast(55);
   lcd.setFont(SmallFont);
-  lcd.print("RIOT1 v0.6",LEFT,0);     // Display Splash Page
+  lcd.print("RIOT1 v0.9",LEFT,0);     // Display Splash Page
   lcd.print("  Monitoring",LEFT,16);
   lcd.print("  System Node",LEFT,24);
   lcd.print("Excaliber Inc.",LEFT,40);
@@ -177,9 +177,9 @@ void loop()
   Moisture2 = analogRead(Moisture_2_Pin);
   Moisture3 = analogRead(Moisture_3_Pin);
 
-  Moisture1_p = Moisture1*100/1023;         // Moisture reading in percentage. 100 = soaked
-  Moisture2_p = Moisture2*100/1023;
-  Moisture3_p = Moisture3*100/1023;
+  Moisture1_p = convertToPercent(Moisture1);  // Moisture reading in percentage. 0 = dry, 100 = soaked
+  Moisture2_p = convertToPercent(Moisture2);
+  Moisture3_p = convertToPercent(Moisture3);
             
   // ***** 5. DS1307 Date and Time and store in Global Vars *****
   if (debug) Serial.print(F("-> DL1307: Reading RTC Date and Time\n"));
@@ -205,7 +205,7 @@ void loop()
   dtostrf(Moisture3_p, 5, 1, M3_b);
   dtostrf(Update_Sequence, 6, 0, SE_b);
          
-  Serial.print(F("RIOT1:  0.8"));             // Node Type and Software Version
+  Serial.print(F("RIOT1:  0.9"));             // Node Type and Software Version
   Serial.print(F(", ID:"));                   // Node ID
   Serial.print(ID_b);
   Serial.print(F(", TS:"));                   // Date and time(24hr) when RTC is integrated
@@ -261,8 +261,10 @@ void loop()
 
   // Update Record Sequence
   Update_Sequence++;
+  if (Update_Sequence > 999999)
+    Update_Sequence = 0;
   
-  // Reset Debug mode to off
+  // Reset Debug mode to off after the first loop
   debug = 0;
   
   // Wait update interval prior to sending next update
@@ -377,4 +379,11 @@ int read_BMP180()
   }
 }
 
+// ***** Convert moisture reading to a percent 0% to 100% *****
+int convertToPercent(int value)
+{
+  int percentValue = 0;
+  percentValue = map(value, 1023, 465, 0, 100);
+  return percentValue;
+}
 
